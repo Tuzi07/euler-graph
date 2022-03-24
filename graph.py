@@ -28,6 +28,8 @@ class Graph:
       self.number_of_edges += 1
       self.adjacency_list[node1].append(pair1)
       self.adjacency_list[node2].append(pair2)
+      print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA JUST MARCOS")
+      print("STURULOSAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
 
   def add_nodes(self, nodes_filepath):
     with open(nodes_filepath, newline='') as csvfile:
