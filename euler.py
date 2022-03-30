@@ -1,12 +1,13 @@
 from graph import Graph
+import copy
 
 def is_odd(number):
   return number % 2 == 1
 
 def number_of_odd_degrees(graph):
   odd_degrees = 0
-  for node in graph.adjacency_list:
-    if is_odd(graph.degree(node[0])):
+  for node in graph.nodes:
+    if is_odd(graph.nodes[node].degree()):
       odd_degrees += 1
   return odd_degrees
 
@@ -19,56 +20,63 @@ def evaluate_eulerity(graph):
     print('Grafo é Semi-Euleriano')
     print_path(graph)
   else:
-    print('Nem Euleriano nem Semi-Euleriano')
+    print('Grafo é nem Euleriano nem Semi-Euleriano')
+
+def is_final_edge(graph, node):
+  return graph.nodes[node].degree() == 1
+
+def is_not_bridge(graph, origin, destiny):
+  graph_copy = copy.deepcopy(graph)
+  
+  visited_before = graph_copy.dfs_count_from_node(origin)
+  
+  graph_copy.remove_edge(origin, destiny)
+  graph_copy.reset_visited_nodes()
+  visited_after = graph_copy.dfs_count_from_node(origin)
+  
+  return visited_before == visited_after
 
 def fleury_algorithm(graph, origin):
-  # Follow edges that are not dead ends one at a time
   distance = 0
   while(graph.number_of_edges != 0):
-    if graph.number_of_edges == 1:
-      destiny = graph.adjacency_list[origin][0][0]
-      print(origin, '->', destiny)
-      distance += graph.pair_from_list(origin, destiny)[1]
-      graph.remove_edge(origin, destiny)
-      origin = destiny
-    else:
-      for possible_destiny in graph.adjacency_list[origin]:
-        if graph.degree(possible_destiny[0]) != 1:
-          destiny = possible_destiny[0]
-          print(origin, '->', destiny)
-          distance += graph.pair_from_list(origin, destiny)[1]
-          graph.remove_edge(origin, destiny)
-          origin = destiny
-          break
+    for possible_destiny in graph.nodes[origin].edges:
+      if is_final_edge(graph, origin) or is_not_bridge(graph, origin, possible_destiny):
+        destiny = possible_destiny
+        print(origin, '->', destiny)
+        distance += graph.nodes[origin].edges[destiny].weight
+        graph.remove_edge(origin, destiny)
+        origin = destiny
+        break
   print('Distância', distance)
 
 def print_cycle(graph):
-  g = graph
-  fleury_algorithm(g, origin = list(g.adjacency_list)[0][0])
+  graph_copy = copy.deepcopy(graph)
+  fleury_algorithm(graph_copy, origin = list(graph_copy.nodes)[0])
+
+def origin_of_path(graph):
+  for node in graph.nodes:
+    if is_odd(graph.nodes[node].degree()):
+      return node
 
 def print_path(graph):
-  g = graph
-  origin = None
+  graph_copy = copy.deepcopy(graph)
+  fleury_algorithm(graph_copy, origin = origin_of_path(graph_copy))
 
-  for node in g.adjacency_list:
-    if is_odd(g.degree(node[0])):
-      origin = node
-      break
+graph_number = 0
 
-  fleury_algorithm(g, origin)
+def graph_analysis(nodes_filepath, edges_filepath):
+  global graph_number
+  graph_number += 1
+  print('Grafo', graph_number)
+  graph = Graph(nodes_filepath, edges_filepath)
+  graph.print_graph()
+  print()
 
-print('Grafo 1:')
-evaluate_eulerity(Graph().from_filepaths('nodes.csv', 'edges1.csv'))
-print('')
+  evaluate_eulerity(graph)
+  print()
 
-print('Grafo 2:')
-evaluate_eulerity(Graph().from_filepaths('nodes.csv', 'edges2.csv'))
-print('')
-
-print('Grafo 3:')
-evaluate_eulerity(Graph().from_filepaths('nodes.csv', 'edges3.csv'))
-print('')
-
-print('Grafo 4:')
-evaluate_eulerity(Graph().from_filepaths('nodes.csv', 'edges4.csv'))
-print('')
+graph_analysis('nodes.csv', 'edges1.csv')
+graph_analysis('nodes.csv', 'edges2.csv')
+graph_analysis('nodes.csv', 'edges3.csv')
+graph_analysis('nodes.csv', 'edges4.csv')
+graph_analysis('nodes5.csv', 'edges5.csv')
